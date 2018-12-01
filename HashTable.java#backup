@@ -1,0 +1,222 @@
+import java.io.*;
+import java.util.*;
+
+
+public class HashTable
+{
+    public static void main(String args[]) throws Exception
+    {
+        HashTable hashTable = new HashTable(7);
+        Scanner kb = new Scanner(new File("input.txt"));
+        while(kb.hasNextLine())
+        {
+            String input = kb.nextLine();
+            String[] keyValue = input.split(",");
+            hashTable.put(Integer.parseInt(keyValue[0]), keyValue[1].trim());
+        }
+        hashTable.remove(1); //remove w/ int
+        hashTable.put(2, "Amazing Spider Man");
+        System.out.println(hashTable.toString());
+    }
+
+    private Node[] table;
+    private int size = 0;
+
+    public HashTable()
+    {
+        table = new Node[101];
+    }
+
+    public HashTable(int size)
+    {
+        table = new Node[size];
+    }
+
+    public Object put(Object key, Object value)
+    {
+        if(size + 1 < table.length) //
+        {
+            int index = key.hashCode() % table.length;
+
+            if(table[index] == null) //if location empty
+            {
+                size++;
+                table[index] = new Node(key, value);
+                return null;
+            }
+            else
+            {
+                if(table[index].key.equals(key))
+                {
+                    Object prevValue = table[index].value; //override with new value if same keys
+                }
+                else
+                {
+                    int repeatIndex = index-1;
+                    //save new obj
+                    while(repeatIndex+1 != index) //Use linear probing to find an empty table location //if gone an entire circle in table
+                    {
+                        if(table[index] == null) //null
+                        {
+                            size++;
+                            table[index] = new Node(key, value);
+                            return null;
+                        }
+                        else if(table[index].removed)
+                        {
+                            size++;
+                            table[index] = new Node(key, value);
+                            int repeatIndex2 = index - 1;
+                            //just return
+                            while(repeatIndex2 + 1 != index) //Continue searching for a duplicate object until an empty bucket is encountered
+                            {
+                                if(table[index] == null)
+                                {
+                                    return null;
+                                }
+                                else if(table[index].key.equals(key))
+                                {
+                                    table[index].removed = true;
+                                    size--;
+                                    return null;
+                                }
+                                index++;
+                                if(index > table.length)
+                                {
+                                    index = 0;
+                                }
+                            }
+                        }
+                        index++;
+                        if(index > table.length)
+                        {
+                            index = 0;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+
+        /*size++;
+        Node node = new Node(key, value);
+        int index = key.hashCode() % table.length;
+        Node prev = table[index];
+        table[index] = node;
+        return prev;*/
+    }
+
+    public Object get(Object key)
+    {
+        //return table[key.hashCode()  % table.length].value;
+        int index = key.hashCode() % table.length;
+
+        if(!table[index].removed && key.equals(table[index].key))
+        {
+            table[index].removed = true;
+            return table[index].value;
+        }
+        else
+        {
+            int repeatIndex = index-1;
+            while(repeatIndex+1 != index) //if gone an entire circle in table
+            {
+                if(table[index] == null) //null
+                {
+                    return null;
+                }
+                else if(!table[index].removed && table[index].key.equals(key)) //not removed
+                {
+                    table[index].removed = true;
+                    return table[index].value;
+                }
+                index++;
+                if(index > table.length)
+                {
+                    index = 0;
+                }
+            }
+        }
+        return null;
+    }
+
+    public Object remove(Object key)
+    {
+        int index = key.hashCode() % table.length;
+
+        if(!table[index].removed && key.equals(table[index].key))
+        {
+            table[index].removed = true;
+            size--;
+            return table[index].value;
+        }
+        else
+        {
+            int repeatIndex = index-1;
+            while(repeatIndex+1 != index) //if gone an entire circle in table
+            {
+                if(table[index] == null)
+                {
+                    return null;
+                }
+                else if(!table[index].removed && table[index].key.equals(key))
+                {
+                    table[index].removed = true;
+                    size--;
+                    return table[index].value;
+                }
+                index++;
+                if(index > table.length)
+                {
+                    index = 0;
+                }
+            }
+        }
+        return null;
+    }
+
+    public String toString()
+    {
+        StringBuilder sb = new StringBuilder(); //more efficient than new string each time
+        for (Node node: table)
+        {
+            if (node != null)
+            {
+                if (node.removed)
+                {
+                    sb.append("dummy\n");
+                }
+                else
+                {
+                    sb.append(node.key).append(": ").append(node.value).append("\n");
+                }
+            }
+        }
+        return sb.toString();
+    }
+
+    public class Node
+    {
+        public Object key, value;
+        boolean removed = false;
+
+        public Node()
+        {
+            key = null;
+            value = null;
+        }
+
+        public Node(Object key, Object value)
+        {
+            this.key = key;
+            this.value = value;
+        }
+
+        public String toString()
+        {
+            return key.toString() + ": " + value.toString();
+        }
+
+    }
+
+}
